@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Validator;
 
 class ProductController extends Controller
 {
+
+
+
     /**
      * Display a listing of the resource.
      *
@@ -74,9 +77,10 @@ class ProductController extends Controller
      * @param  \App\Models\product  $product
      * @return \Illuminate\Http\Response
      */
-    public function show(product $product)
+    public function show($id)
     {
-        //
+        $products=product::find($id);
+        return response()->json($products,200);
     }
 
     /**
@@ -85,9 +89,9 @@ class ProductController extends Controller
      * @param  \App\Models\product  $product
      * @return \Illuminate\Http\Response
      */
-    public function edit(product $product)
+    public function edit(Request $request,$id)
     {
-        //
+
     }
 
     /**
@@ -97,9 +101,51 @@ class ProductController extends Controller
      * @param  \App\Models\product  $product
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, product $product)
+    public function update(Request $request, $id)
     {
-        //
+
+        $rules=['name'=>[],'description'=>[],'price'=>[],'image'=>[]];
+
+
+        $product= product::find($id);
+
+        if($request->input("name"))
+        {
+            $product->name = $request->input('name');
+            $rules['name'] = ['required','unique:products','max:255'];
+        }
+
+        if($request->input("description"))
+        {
+            $product->description = $request->input('description');
+            $rules['description'] = ['max:255'];
+
+        }
+
+        if($request->input("price"))
+        {
+            $product->price = $request->input('price');
+            $rules['price']= ['required','numeric','min:0'];
+        }
+
+        if($request->input("image"))
+        {
+            $product->image = $request->input('image');
+            $rules['image'] = ['max:255'];
+        }
+
+        $validator = Validator::make($request->all(),$rules );
+
+
+        if(!$validator->fails())
+        {
+            $product->save();
+            return response()->json($product, 200);
+        }
+        else
+        {
+            return response()->json(['errors'=>$validator->errors()]);
+        }
     }
 
     /**
@@ -108,9 +154,10 @@ class ProductController extends Controller
      * @param  \App\Models\product  $product
      * @return \Illuminate\Http\Response
      */
-    public function destroy(product $product)
+    public function destroy($id)
     {
-        //
+        $products=product::find($id)->delete();
+        return response()->json($products,200);
     }
 }
 
