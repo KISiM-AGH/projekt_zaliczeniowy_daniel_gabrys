@@ -9,6 +9,17 @@ use Illuminate\Support\Facades\Validator;
 class ProductController extends Controller
 {
 
+    public function Upload($file)
+    {
+        $filenameWithExt= $file->getClientOriginalName();
+        $filename = pathinfo($filenameWithExt,PATHINFO_FILENAME);
+
+        $extension = $file->getClientOriginalExtension();
+
+        $fileNameToStore=$filename.'.'.$extension;
+
+        $path = $file->storeAs('public/photos/',$fileNameToStore) ;
+    }
 
 
     /**
@@ -47,7 +58,7 @@ class ProductController extends Controller
                     'name' =>  ['required','unique:products','max:255'],
                     'description' => ['max:255'],
                     'price' => ['required','numeric','min:0'],
-                    'image' => ['max:255'],
+                    'image' => ['mimes:jpg,png,jpeg'],
 
             ]);
 
@@ -56,10 +67,12 @@ class ProductController extends Controller
         $product->name=$request->input('name');
         $product->description=$request->input('description') ;
         $product->price=$request->input('price') ;
-        $product->image=$request->input('image') ;
+        $product->image=$request->file('image')->getClientOriginalName() ;
+
 
         if(!$validator->fails())
         {
+            $this->Upload($request->file('image'))  ;
             $product->save();
             return response()->json($product, 200);
         }
